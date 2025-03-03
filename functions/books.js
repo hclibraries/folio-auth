@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -7,8 +5,6 @@ exports.handler = async (event) => {
     'Access-Control-Allow-Methods': 'GET'
   };
 
-  const month = event.queryStringParameters.month;
-  
   try {
     const tokenResponse = await fetch('https://holycross-okapi.folio.indexdata.com/authn/login-with-expiry', {
       method: 'POST',
@@ -26,29 +22,16 @@ exports.handler = async (event) => {
     const tokenMatch = cookies.match(/folioAccessToken=([^;]+)/);
     const token = tokenMatch ? tokenMatch[1] : null;
 
-    const booksResponse = await fetch(
-      `https://holycross-okapi.folio.indexdata.com/inventory/items?limit=100&query=administrativeNotes="${month}"`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Okapi-Tenant': 'holycross',
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-
-    const data = await booksResponse.json();
-
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify({ token })
     };
   } catch (error) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Failed to fetch books' })
+      body: JSON.stringify({ error: 'Failed to get token' })
     };
   }
 };
